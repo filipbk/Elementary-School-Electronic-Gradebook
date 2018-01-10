@@ -1,6 +1,6 @@
 package client;
 /**
- * Wprawdopodobnie¿ klasa pod uruchamianie GUI klienta.
+ * Probably a class designed to launch client GUI.
  * @author pawemix
  */
 public class Main {

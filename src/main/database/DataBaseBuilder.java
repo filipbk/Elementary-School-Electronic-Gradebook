@@ -1,6 +1,6 @@
 package database;
 /**
- * Prawdopodobnie¿ budowniczy buduj¹cy czysty szkielet bazy danych.
+ * Probably a builder designed to build a clear database.
  * @author pawemix
  *
  */

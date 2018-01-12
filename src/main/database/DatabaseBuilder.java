@@ -4,9 +4,9 @@ import java.sql.*;
 /**
  * Probably a builder designed to build a clear database.
  * @author pawemix
- *
+ * @deprecated 
  */
-public class DataBaseBuilder {
+public class DatabaseBuilder {
 
 	/** XXX JDBC
 	 * DriverManager - matches connection requests with proper Driver, depending on a database we have;
@@ -16,20 +16,25 @@ public class DataBaseBuilder {
 	 * SQLException - if there's a problem with our DB
 	 * 
 	 * PRIMARY PACKAGES: java.sql, javax.sql; contain all needed classes
+	 * @deprecated
 	 */
-	
+	public DatabaseBuilder(String host, String user, String password) {
+		try {
+			Class.forName("org.mariadb.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			System.out.println("Could not connect to a database.");
+			return;
+		}
+
+	}
 	/**
 	 * At the moment this method tests connection with database server as root and performs basic operations
 	 * in order to get some data from the database.
 	 * @param args
+	 * @deprecated
 	 */
 	public static void main(String[] args) {
-		try {
-			Class.forName("org.mariadb.jdbc.Driver");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-			return;
-		}
+
 		try {
 			
 			Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306", "root", "");
@@ -52,8 +57,8 @@ public class DataBaseBuilder {
 			}
 			connection.close();
 			
-		} catch(SQLException e1) {
-			e1.printStackTrace();
+		} catch(SQLException e) {
+			e.printStackTrace();
 		}
 	}
 }

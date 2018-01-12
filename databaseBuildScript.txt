@@ -1,0 +1,79 @@
+
+DROP DATABASE IF EXISTS `electronic_gradebook`;
+CREATE DATABASE `electronic_gradebook` COLLATE 'utf8_unicode_ci';
+
+USE `electronic_gradebook`;
+
+CREATE TABLE address(
+	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	postal_code CHAR(6) NOT NULL CHECK(postal_code REGEXP '^[0-9]{2}-[0-9]{3}'),
+	city VARCHAR(30) NOT NULL CHECK(city REGEXP '^[-A-Za-z ]+$'),
+	street VARCHAR(30) NOT NULL CHECK(street REGEXP '^[-1-9A-Za-z ]+$'),
+	house_number INT NOT NULL,
+	flat_number INT NULL
+);
+
+CREATE TABLE users(
+	-- ID jest generowany automatycznie przy wprowadzaniu nowego u¿ytkownika. 3 pierwsze litery imienia, potem 3 pierwsze nazwiska, potem 5 losowych cyfr.
+	ID CHAR(11) NOT NULL UNIQUE PRIMARY KEY CHECK(ID REGEXP '^[a-z]{6}[0-9]{5}$'),
+	PESEL CHAR(11) NOT NULL CHECK(PESEL REGEXP '^[0-9]{11}$'),
+	password_hash BINARY(64) NOT NULL, -- TODO?
+	first_name VARCHAR(20) NOT NULL CHECK(first_name REGEXP '^[A-Za-z]+$'),
+	second_name VARCHAR(20) CHECK(second_name REGEXP '^[A-Za-z]+$'),
+	surname VARCHAR(20) NOT NULL CHECK(surname REGEXP '^[- A-Za-z]+$'),
+	date_of_birth DATE NOT NULL,
+	address_id INT NOT NULL REFERENCES adress(`ID`) ON DELETE RESTRICT,
+	-- jeszcze s¹ sytuacje ¿e mo¿na u¿ywaæ kropek w loginie w mailu, ale to skomplikowane
+	email VARCHAR(50) CHECK(email REGEXP '^[-!#$%&*+/=?^_`{|}~a-zA-Z0-9]+@([a-zA-Z]([-0-9a-zA-Z]*[a-zA-Z])?)(\.[a-zA-Z]([-0-9a-zA-Z]*[a-zA-Z])?)+$'),
+	contact_phone CHAR(12) CHECK(contact_phone REGEXP '[+][0-9]{11}'),
+	permissions ENUM('ADMIN', 'TEACHER', 'STUDENT') NOT NULL
+);
+
+CREATE TABLE staff(
+	ID CHAR(11)	NOT NULL REFERENCES users(ID)
+);
+
+CREATE TABLE classes(
+	ID CHAR(2) PRIMARY KEY CHECK(ID REGEXP '^[1-8][a-z]$'),
+	tutor CHAR(11) NOT NULL REFERENCES staff(ID),
+	class_year INT CHECK(class_year BETWEEN 1 AND 8)
+);
+
+CREATE TABLE students(
+	ID CHAR(11) NOT NULL REFERENCES users(ID),
+	parent_phone CHAR(12) CHECK(parent_phone REGEXP '^[+][0-9]{11}$'),
+	class_id CHAR(2) NOT NULL REFERENCES classes(ID)
+);
+
+CREATE TABLE subjects(
+	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	name VARCHAR(50) NOT NULL,
+	class_year INT NOT NULL
+);
+	
+
+CREATE TABLE grades(
+	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	grade_value INT NOT NULL CHECK(grade_value BETWEEN 1 AND 6),
+	student_id CHAR(11) NOT NULL REFERENCES students(ID),
+	teacher_id CHAR(11) NOT NULL REFERENCES staff(ID),
+	subject_id INT NOT NULL REFERENCES subjects(ID),
+	final_grade ENUM('F','T') NOT NULL DEFAULT 'F',
+	note VARCHAR(100)
+);
+
+CREATE TABLE lesson_sets(
+	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	subject_id INT NOT NULL REFERENCES subjects(ID),
+	teacher_id CHAR(11) NOT NULL REFERENCES staff(ID),
+	class_id CHAR(2) NOT NULL REFERENCES classes(ID)
+);
+
+CREATE TABLE lesson_hours(
+	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+	lesson_set_id INT NOT NULL REFERENCES lesson_sets(ID),
+	room_number VARCHAR(8) NOT NULL,
+	week_day ENUM('MON','TUE','WED','THU','FRI') NOT NULL,
+	start_hour TIME NOT NULL,
+	end_hour TIME NOT NULL
+);

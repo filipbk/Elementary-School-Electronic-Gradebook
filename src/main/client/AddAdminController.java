@@ -1,15 +1,21 @@
 package client;
 
 import java.io.IOException;
+import java.sql.Date;
 
 import database.DatabaseConnector;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
@@ -17,6 +23,8 @@ public class AddAdminController {
 	
 	private String userID;
 	private DatabaseConnector connector;
+	private ToggleGroup group;
+	private String type;
 	
 	@FXML
 	private TextField pesel;
@@ -29,7 +37,11 @@ public class AddAdminController {
 	@FXML
 	private TextField surname;
 	@FXML
-	private TextField dateOfBirth;
+	private TextField day;
+	@FXML
+	private TextField month;
+	@FXML
+	private TextField year;
 	@FXML
 	private TextField email;
 	@FXML
@@ -50,9 +62,71 @@ public class AddAdminController {
 	private Button add;
 	@FXML
 	private Button back;
+	@FXML
+	private RadioButton admin;
+	@FXML
+	private RadioButton teacher;
+	
+	@FXML
+	private void initialize() {
+		type = "Admin";
+		group = new ToggleGroup();
+		admin.setToggleGroup(group);
+		admin.setUserData("Admin");
+		admin.setSelected(true);
+		teacher.setToggleGroup(group);
+		teacher.setUserData("Teacher");
+		group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
+			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
+				//type = group.getSelectedToggle().getUserData().toString();
+				 if (group.getSelectedToggle() != null) {
+					type = group.getSelectedToggle().getUserData().toString();
+				 } 
+			}
+		});
+	}
 	
 	@FXML
 	private void handleAdd(ActionEvent event) {
+		String peselS = pesel.getText();
+		String passwordS = password.getText();
+		String firstS = firstName.getText();
+		String secondS = secondName.getText();
+		String surnameS = surname.getText();
+		String dayS = day.getText();
+		String monthS = month.getText();
+		String yearS = year.getText();
+		String dateS = yearS + "-" + monthS + "-" + dayS;
+		String emailS = email.getText();
+		String phoneS = contactPhone.getText();
+		String postalS = postalCode.getText();
+		String cityS = city.getText();
+		String streetS = street.getText();
+		Date date = null;
+		int house;
+		int flat;
+		try {
+			date = Date.valueOf(dateS);
+			house = Integer.parseInt(houseNumber.getText());
+			if (flatNumber.getText().equals("")) {
+				flat = 0;
+			} else {
+				flat = Integer.parseInt(flatNumber.getText());
+			}
+		} catch (NumberFormatException e) {
+			message.setText("House and flat number must be a number");
+			return;
+		} catch (IllegalArgumentException e1) {
+			message.setText("Invalid date");
+			return;
+		}
+		
+		if(type.equals("Admin")) {
+			String msg = connector.addAdmin(peselS, passwordS, firstS, secondS, surnameS, date, emailS, phoneS, postalS, cityS, streetS, house, flat);
+			message.setText(msg);
+		} else {
+
+		}
 		
 	}
 

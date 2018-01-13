@@ -19,7 +19,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
-public class AddAdminController {
+public class AddStudentController {
 	
 	private String userID;
 	private DatabaseConnector connector;
@@ -57,34 +57,15 @@ public class AddAdminController {
 	@FXML
 	private TextField flatNumber;
 	@FXML
+	private TextField parentPhone;
+	@FXML
+	private TextField classID;
+	@FXML
 	private TextField message;
 	@FXML
 	private Button add;
 	@FXML
 	private Button back;
-	@FXML
-	private RadioButton admin;
-	@FXML
-	private RadioButton teacher;
-	
-	@FXML
-	private void initialize() {
-		type = "Admin";
-		group = new ToggleGroup();
-		admin.setToggleGroup(group);
-		admin.setUserData("Admin");
-		admin.setSelected(true);
-		teacher.setToggleGroup(group);
-		teacher.setUserData("Teacher");
-		group.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-			public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue) {
-				//type = group.getSelectedToggle().getUserData().toString();
-				 if (group.getSelectedToggle() != null) {
-					type = group.getSelectedToggle().getUserData().toString();
-				 } 
-			}
-		});
-	}
 	
 	@FXML
 	private void handleAdd(ActionEvent event) {
@@ -102,6 +83,8 @@ public class AddAdminController {
 		String postalS = postalCode.getText();
 		String cityS = city.getText();
 		String streetS = street.getText();
+		String parentS = parentPhone.getText();
+		String classS = classID.getText();
 		Date date = null;
 		int house;
 		int flat;
@@ -121,13 +104,8 @@ public class AddAdminController {
 			return;
 		}
 		
-		if(type.equals("Admin")) {
-			String msg = connector.addAdmin(peselS, passwordS, firstS, secondS, surnameS, date, emailS, phoneS, postalS, cityS, streetS, house, flat);
-			message.setText(msg);
-		} else {
-			String msg = connector.addStaff(peselS, passwordS, firstS, secondS, surnameS, date, emailS, phoneS, postalS, cityS, streetS, house, flat);
-			message.setText(msg);
-		}
+		String msg = connector.addStudent(peselS, passwordS, firstS, secondS, surnameS, date, emailS, phoneS, postalS, cityS, streetS, house, flat, parentS, classS);
+		message.setText(msg);
 		
 	}
 

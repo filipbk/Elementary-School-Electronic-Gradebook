@@ -42,30 +42,36 @@ public class LoginWindowController {
 	
 	@FXML
 	private void handleConfirm(ActionEvent event) {
-		String call = "{call Login(?, ?)}";
 		ResultSet resultSet = null;
-		// TODO Will be moved to DatabaseConnector
-		/*try {
-			PreparedStatement statement = connector.getConnection().prepareCall(call);
-			statement.setString(1, login.getText());
-			statement.setString(2, password.getText());
-			resultSet = statement.executeQuery();
-			
-			if(resultSet.next()) {
-				userID = resultSet.getString(1);
-			} else {
-				setMessage("Invalid login or password");
+		String permission = "";
+		resultSet = connector.login(login.getText(), password.getText());
+		
+		try {
+			if(resultSet == null) {
+				message.setText("Null");
 				return;
+			} else if(resultSet.next()) {
+				userID = resultSet.getString(1);
+				permission = resultSet.getString(2);
+			} else {
+				message.setText("Invalid data");
 			}
-			
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			message.setText("Unable to log in");
 			e.printStackTrace();
 			return;
-		}*/
+		}
 		
 		Stage stage = (Stage)confirm.getScene().getWindow();
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("AdminWindow.FXML"));
+		FXMLLoader loader = null;
+		
+		if(permission.equals("ADMIN")) {
+			loader = new FXMLLoader(getClass().getResource("AdminWindow.FXML"));
+		} else if(permission.equals("TEACHER")) {
+
+		} else if(permission.equals("STUDENT")) {
+
+		}
 		
 		Scene scene = null;
 		try {
@@ -75,8 +81,14 @@ public class LoginWindowController {
 			e.printStackTrace();
 		}
 		stage.setScene(scene);
-		AdminWindowController controller = loader.<AdminWindowController>getController();
-		controller.setData("A", connector);
+		if(permission.equals("ADMIN")) {
+			AdminWindowController controller = loader.<AdminWindowController>getController();
+			controller.setData(userID, connector);
+		} else if(permission.equals("TEACHER")) {
+
+		} else if(permission.equals("STUDENT")) {
+
+		}
 		stage.show();
 		
 	}

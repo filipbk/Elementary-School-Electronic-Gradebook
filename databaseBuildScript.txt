@@ -23,7 +23,7 @@ CREATE TABLE users(
 	second_name VARCHAR(20) CHECK(second_name REGEXP '^[A-Za-zêó¹œ³¿ŸæÊÓ¥Œ£¯Æ]+$'),
 	surname VARCHAR(20) NOT NULL CHECK(surname REGEXP '^[- A-Za-zêó¹œ³¿ŸæÊÓ¥Œ£¯Æ]+$'),
 	date_of_birth DATE NOT NULL,
-	address_id INT NOT NULL REFERENCES adress(`ID`) ON DELETE RESTRICT,
+	address_id INT NOT NULL REFERENCES address(`ID`) ON DELETE RESTRICT,
 	-- jeszcze s¹ sytuacje ¿e mo¿na u¿ywaæ kropek w loginie w mailu, ale to skomplikowane
 	email VARCHAR(50) CHECK(email REGEXP '^[-!#$%&*+/=?^_`{|}~a-zA-Z0-9]+@([a-zA-Z]([-0-9a-zA-Z]*[a-zA-Z])?)(\.[a-zA-Z]([-0-9a-zA-Z]*[a-zA-Z])?)+$'),
 	contact_phone CHAR(12) CHECK(contact_phone REGEXP '[+][0-9]{11}'),
@@ -37,7 +37,7 @@ CREATE TABLE staff(
 CREATE TABLE classes(
 	ID CHAR(2) PRIMARY KEY CHECK(ID REGEXP '^[1-8][a-z]$'),
 	tutor CHAR(11) NOT NULL REFERENCES staff(ID),
-	class_year INT NOT NULL CHECK(class_year BETWEEN 1 AND 8)
+	class_year INT NOT NULL DEFAULT 1 CHECK(class_year BETWEEN 1 AND 8)
 );
 
 CREATE TABLE students(
@@ -49,7 +49,7 @@ CREATE TABLE students(
 CREATE TABLE subjects(
 	ID INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 	name VARCHAR(50) NOT NULL,
-	class_year INT NOT NULL
+	class_year INT NOT NULL CHECK(class_year BETWEEN 1 AND 8)
 );
 	
 
@@ -77,7 +77,7 @@ CREATE TABLE lesson_hours(
 	room_number VARCHAR(8) NOT NULL,
 	week_day ENUM('MON','TUE','WED','THU','FRI') NOT NULL,
 	start_hour TIME NOT NULL,
-	end_hour TIME NOT NULL
+	end_hour TIME NOT NULL CHECK(TIMEDIFF(end_hour,start_hour) > 0)
 );
 
 DELIMITER $$
@@ -117,13 +117,15 @@ CREATE OR REPLACE FUNCTION addNewUser (PESEL CHAR(11), passwd VARCHAR(64), first
 		RETURN genID;
 	END;
 $$
-							  
+
 CREATE OR REPLACE PROCEDURE addStudent (IN PESEL CHAR(11), passwd VARCHAR(64), first_name VARCHAR(20), second_name VARCHAR(20), surname VARCHAR(20), date_of_birth DATE,
 	email VARCHAR(50), contact_phone CHAR(12), postal_code CHAR(6), city VARCHAR(30), street VARCHAR(30), house_number INT, flat_number INT, parent_phone CHAR(12), class_id CHAR(2))
 	BEGIN
+		DECLARE address_id INT;
+		DECLARE user_id CHAR(11);
 		IF(class_id IN (SELECT ID FROM classes)) THEN
-			DECLARE address_id INT DEFAULT getAddressIdCreateIfNecessary(postal_code, city, street, house_number, flat_number);
-			DECLARE user_id CHAR(11) DEFAULT addNewUser(PESEL, passwd, first_name, second_name, surname, date_of_birth, address_id, email, contact_phone, 'ADMIN');
+			SET address_id = getAddressIdCreateIfNecessary(postal_code, city, street, house_number, flat_number);
+			SET user_id = addNewUser(PESEL, passwd, first_name, second_name, surname, date_of_birth, address_id, email, contact_phone, 'STUDENT');
 			INSERT INTO students VALUES(user_id,parent_phone,class_id);
 			SELECT user_id;
 		END IF;
@@ -167,20 +169,87 @@ $$
 
 CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), teacher_id CHAR(11), subject_id INT, final_grade BOOL, note VARCHAR(100))
 	BEGIN
-		IF NOT EXISTS(SELECT ID FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
+		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
 			INSERT INTO grades(grade_value,student_id,teacher_id,subject_id,final_grade,note) VALUES(grade_value,student_id,teacher_id,subject_id,final_grade,note);
+			SELECT grade_value;
 		END IF;
 	END;
 $$
 
--- addGrade
+CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), teacher_id CHAR(11), subject_id INT, final_grade INT, note VARCHAR(100))
+	BEGIN
+		DECLARE final_grade_bool BOOL;
+		IF(final_grade = 1) THEN
+			SET final_grade_bool = TRUE;
+		ELSEIF(final_grade = 0) THEN
+			SET final_grade_bool = FALSE;
+		END IF;
+		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
+			INSERT INTO grades(grade_value,student_id,teacher_id,subject_id,final_grade,note) VALUES(grade_value,student_id,teacher_id,subject_id,final_grade_bool,note);
+			SELECT grade_value;
+		END IF;
+	END;
+$$
 
--- addSubject
+CREATE OR REPLACE PROCEDURE addSubject (IN name VARCHAR(50), class_year INT)
+	BEGIN
+		IF NOT EXISTS (SELECT * FROM subjects s WHERE s.name LIKE name AND s.class_year = class_year) THEN
+			INSERT INTO subjects(name,class_year) VALUES(name,class_year);
+			SELECT s.ID FROM subjects s WHERE s.name LIKE name AND s.class_year = class_year;
+		END IF;
+	END;
+$$
 
--- addLessonSet
+CREATE OR REPLACE PROCEDURE addClass (IN class_id CHAR(2), tutor CHAR(11), class_year INT)
+	BEGIN
+		INSERT INTO classes(ID,tutor,class_year) VALUES(class_id,tutor,class_year);
+		SELECT class_id;
+	END
+$$
 
--- addClass
+CREATE OR REPLACE PROCEDURE addLessonSet (IN subject_id INT,teacher_id CHAR(11),class_id CHAR(2))
+	BEGIN
+		INSERT INTO lesson_sets(subject_id,teacher_id,class_id) VALUES(subject_id,teacher_id,class_id);
+		SELECT l.ID FROM lesson_sets l WHERE l.subject_id = subject_id AND l.teacher_id LIKE teacher_id AND l.class_id LIKE class_id;
+	END;
+$$
 
+CREATE OR REPLACE PROCEDURE addLessonHour (IN lesson_set_id INT, room_number VARCHAR(8), week_day ENUM('MON','TUE','WED','THU','FRI'), start_hour TIME, end_hour TIME)
+	BEGIN
+		INSERT INTO lesson_hours(lesson_set_id,room_number,week_day,start_hour,end_hour) VALUES(lesson_set_id,room_number,week_day,start_hour,end_hour);
+		SELECT 'SUCCESS';
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllClasses()
+	BEGIN
+		SELECT c.ID, c.class_year FROM classes c;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllSubjectsForClass(IN class_id CHAR(2))
+	BEGIN
+		SELECT s.ID,s.name, s.class_year FROM subjects s INNER JOIN classes c ON s.class_year = c.class_year WHERE c.ID LIKE class_id;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllSubjectsForYear(IN class_year INT)
+	BEGIN
+		SELECT s.ID,s.name, s.class_year FROM subjects s WHERE s.class_year = class_year;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllStudentsForClass(IN class_id CHAR(2))
+	BEGIN
+		SELECT u.ID,u.first_name,u.surname,u.email,u.contact_phone,s.parent_phone FROM students s INNER JOIN users u ON s.ID LIKE u.ID WHERE s.class_id LIKE class_id;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11), subject_id INT)
+	BEGIN
+		SELECT g.assessment_date,g.grade_value,g.final_grade,g.note FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
+	END;
+$$
 
 DELIMITER ;
 

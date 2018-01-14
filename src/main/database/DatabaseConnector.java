@@ -1,5 +1,10 @@
 package database;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -7,6 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class DatabaseConnector {
 	
@@ -14,6 +22,7 @@ public class DatabaseConnector {
 	private static final String DB_URL = "jdbc:mysql://localhost/electronic_gradebook";
 	private static final String USER = "root";
 	private static final String PASSWORD = "";
+	private static final String buildScriptPath = "\\databaseBuildScript.txt"; 
 	
 	public String connect() {
 		
@@ -173,5 +182,86 @@ public class DatabaseConnector {
 		}
 		return resultSet;
 	}
+	/**
+	 * A method that receives text from databaseBuildScript.txt located in project directory,
+	 * formats it into a series of SQL statements, and then executes them one by one.
+	 * DatabaseBuildScript.txt's function is to build the database's framework from scratch,
+	 * in SQL, all the tables, procedures, etc. 
+	 * @author pawemix
+	 */
+	public void rebuildDatabase() {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+		} catch (ClassNotFoundException e) {
+			System.out.println("Could not retrieve database driver.");
+			return;
+		}
+		
+		List<String> buildScript;
+		
+		try {
+		File buildFile = new File("");
+		buildFile = new File(buildFile.getAbsolutePath() + buildScriptPath);
+		buildScript = readFile(buildFile);
+		} catch(FileNotFoundException e1) {
+			System.out.println("Could not retrieve a build script text file from project directory.");
+			return;
+		} catch(IOException e2) {
+			System.out.println("IO Error while reading from the build script text file.");
+			return;
+		}
+		try {
+			Connection connection = DriverManager.getConnection(DB_URL,USER,PASSWORD);
+			Statement statement = connection.createStatement();
+			for(String command : buildScript) statement.execute(command);
+			connection.close();
+		} catch(SQLException e) {
+			System.out.println("Error while connecting to the database/executing statements.");
+			e.printStackTrace();
+			return;
+		}
+		System.out.println("Successfully set up a clear electronic gradebook database.");
+	}
+	
+	/**
+	 * Reads a raw string from a file.
+	 * @param file file, from which we read a string
+	 * @return raw string
+	 * @throws FileNotFoundException if no file was found
+	 * @throws IOException if there was an IO problem while reading from a file
+	 */
+	private List<String> readFile(File file) throws FileNotFoundException, IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		StringBuilder sb = new StringBuilder();
 
+		String line = br.readLine();
+		while(line != null) {
+			if(!line.matches("^([ ]|\\t)*-- .*$")) sb.append(line + " ");
+			line = br.readLine();
+		}
+		br.close();
+		return divideIntoSQLStatements(sb.toString());
+	}
+	/**
+	 * @param string a raw string symbolizing concatenated list of SQL statements
+	 * @return Java List of strings; clear, formatted SQL statements
+	 */
+	private List<String> divideIntoSQLStatements(String string) {
+		String[] chunks = string.split("\\bDELIMITER ");
+		List<String> result = new ArrayList<String>();
+		chunks[0] = "; " + chunks[0];
+		for(String chunk : chunks) {
+			String delimiter = chunk.trim().split("\\s")[0];
+			delimiter = delimiter.replace("$", "\\$"); //XXX obs³uguje tylko $, innych kluczowych znaków w regexie nie
+			String[] commands = chunk.split(delimiter);
+			for(String command : commands) result.add(command);
+		}
+		Predicate<String> empty = new Predicate<String>() {
+			public boolean test(String string) {
+				return string.matches("^\\s*$");
+			}
+		};
+		result.removeIf(empty);
+		return result;
+	}
 }

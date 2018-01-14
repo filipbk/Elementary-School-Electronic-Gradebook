@@ -176,19 +176,34 @@ CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), t
 	END;
 $$
 
+CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), teacher_id CHAR(11), subject_id INT, final_grade INT, note VARCHAR(100))
+	BEGIN
+		DECLARE final_grade_bool BOOL;
+		IF(final_grade = 1) THEN
+			SET final_grade_bool = TRUE;
+		ELSEIF(final_grade = 0) THEN
+			SET final_grade_bool = FALSE;
+		END IF;
+		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
+			INSERT INTO grades(grade_value,student_id,teacher_id,subject_id,final_grade,note) VALUES(grade_value,student_id,teacher_id,subject_id,final_grade_bool,note);
+			SELECT grade_value;
+		END IF;
+	END;
+$$
+
 CREATE OR REPLACE PROCEDURE addSubject (IN name VARCHAR(50), class_year INT)
 	BEGIN
 		IF NOT EXISTS (SELECT * FROM subjects s WHERE s.name LIKE name AND s.class_year = class_year) THEN
-			INSERT INTO subjects VALUES(name,class_year);
+			INSERT INTO subjects(name,class_year) VALUES(name,class_year);
 			SELECT s.ID FROM subjects s WHERE s.name LIKE name AND s.class_year = class_year;
 		END IF;
 	END;
 $$
 
-CREATE OR REPLACE PROCEDURE addClass (IN tutor CHAR(11), class_year INT)
+CREATE OR REPLACE PROCEDURE addClass (IN class_id CHAR(2), tutor CHAR(11), class_year INT)
 	BEGIN
-		INSERT INTO classes(tutor,class_year) VALUES(tutor,class_year);
-		SELECT c.ID FROM classes c WHERE c.tutor LIKE tutor AND class_year = class_year;
+		INSERT INTO classes(ID,tutor,class_year) VALUES(class_id,tutor,class_year);
+		SELECT class_id;
 	END
 $$
 
@@ -203,6 +218,36 @@ CREATE OR REPLACE PROCEDURE addLessonHour (IN lesson_set_id INT, room_number VAR
 	BEGIN
 		INSERT INTO lesson_hours(lesson_set_id,room_number,week_day,start_hour,end_hour) VALUES(lesson_set_id,room_number,week_day,start_hour,end_hour);
 		SELECT 'SUCCESS';
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllClasses()
+	BEGIN
+		SELECT c.ID, c.class_year FROM classes c;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllSubjectsForClass(IN class_id CHAR(2))
+	BEGIN
+		SELECT s.ID,s.name, s.class_year FROM subjects s INNER JOIN classes c ON s.class_year = c.class_year WHERE c.ID LIKE class_id;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllSubjectsForYear(IN class_year INT)
+	BEGIN
+		SELECT s.ID,s.name, s.class_year FROM subjects s WHERE s.class_year = class_year;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listAllStudentsForClass(IN class_id CHAR(2))
+	BEGIN
+		SELECT u.ID,u.first_name,u.surname,u.email,u.contact_phone,s.parent_phone FROM students s INNER JOIN users u ON s.ID LIKE u.ID WHERE s.class_id LIKE class_id;
+	END;
+$$
+
+CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11), subject_id INT)
+	BEGIN
+		SELECT g.assessment_date,g.grade_value,g.final_grade,g.note FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
 	END;
 $$
 

@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -94,5 +93,11 @@ public class DatabaseManager {
 		br.close();
 		}
 		return output;
+	}
+	
+	private List<String> divideIntoStatements(String string) {
+		List<String> output = new ArrayList<String>();
+		//TODO
+		return null;
 	}
 }

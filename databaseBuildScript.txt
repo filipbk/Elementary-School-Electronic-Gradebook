@@ -229,7 +229,7 @@ $$
 
 CREATE OR REPLACE PROCEDURE listAllSubjectsForClass(IN class_id CHAR(2))
 	BEGIN
-		SELECT s.ID,s.name, s.class_year FROM subjects s INNER JOIN classes c ON s.class_year = c.class_year WHERE c.ID LIKE class_id;
+		SELECT DISTINCT s.ID, s.name, s.class_year FROM lesson_sets l INNER JOIN subjects s ON l.subject_id = s.ID WHERE l.class_id LIKE class_id;
 	END;
 $$
 
@@ -247,7 +247,7 @@ $$
 
 CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11), subject_id INT)
 	BEGIN
-		SELECT g.assessment_date,g.grade_value,g.final_grade,g.note FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
+		SELECT g.assessment_date,g.grade_value,g.final_grade,u.surname,g.note FROM grades g INNER JOIN users u ON g.teacher_id LIKE u.ID WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
 	END;
 $$
 

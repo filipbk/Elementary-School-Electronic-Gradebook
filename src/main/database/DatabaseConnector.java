@@ -267,6 +267,21 @@ public class DatabaseConnector {
 		}
 		return resultSet;
 	}
+	
+	public ResultSet listAllStudentsForClass(String classID) {
+		String call = "{call listAllStudentsForClass(?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, classID);
+			resultSet = statement.executeQuery();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultSet;
+	}
+	
 	/**
 	 * A method that receives text from databaseBuildScript.txt located in project directory,
 	 * formats it into a series of SQL statements, and then executes them one by one.

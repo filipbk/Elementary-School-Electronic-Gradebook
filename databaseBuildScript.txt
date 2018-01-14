@@ -245,6 +245,14 @@ CREATE OR REPLACE PROCEDURE listAllStudentsForClass(IN class_id CHAR(2))
 	END;
 $$
 
+CREATE OR REPLACE PROCEDURE listStudentsSubjects(IN student_id CHAR(11))
+	BEGIN
+		DECLARE class_id CHAR(2);
+		SELECT u.class_id INTO class_id FROM users u WHERE u.ID LIKE student_id;
+		CALL listAllSubjectsForClass(class_id);
+	END;
+$$
+
 CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11), subject_id INT)
 	BEGIN
 		SELECT g.assessment_date,g.grade_value,g.final_grade,u.surname,g.note FROM grades g INNER JOIN users u ON g.teacher_id LIKE u.ID WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
@@ -252,5 +260,10 @@ CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11),
 $$
 
 DELIMITER ;
+
+-- przedmioty jakie s¹ realizowane w grupach zajêciowych dla danej klasy id klasy -> jej grupy zajêciowe -> jej przedmioty OK
+-- id ucznia -> jego przedmioty OK
+-- id ucznia, przedmiot -> jego oceny OK
+-- transakcje? triggery?
 
 CALL addAdmin('11111111111','admin','Admin','Admin','Admin','1111-11-11','admin@admin.com','+11111111111','11-111','Admin','Admin',1,1);

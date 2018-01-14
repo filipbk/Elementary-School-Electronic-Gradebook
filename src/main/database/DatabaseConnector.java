@@ -79,16 +79,16 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			return "Adding user failed";
 		}
 		
 	}
 	
-	public String addTeacher(String pesel, String password, String firstName, String secondName, String surname, Date dateOfBirth, String email,
+	public String addStaff(String pesel, String password, String firstName, String secondName, String surname, Date dateOfBirth, String email,
 				  String contactPhone, String postalCode, String city, String street, int houseNumber, int flatNumber) {
 		ResultSet resultSet = null;
-		String call = "{call addTeacher(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+		String call = "{call addStaff(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
 		
 		try {
 			PreparedStatement statement = connection.prepareCall(call);
@@ -119,10 +119,46 @@ public class DatabaseConnector {
 	
 	}
 	
+	public String addStudent(String pesel, String password, String firstName, String secondName, String surname, Date dateOfBirth, String email,
+			  String contactPhone, String postalCode, String city, String street, int houseNumber, int flatNumber, String parentPhone, String classID) {
+		ResultSet resultSet = null;
+		String call = "{call addStudent(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1,pesel);
+			statement.setString(2, password);
+			statement.setString(3, firstName);
+			statement.setString(4, secondName);
+			statement.setString(5, surname);
+			statement.setDate(6, dateOfBirth);
+			statement.setString(7, email);
+			statement.setString(8, contactPhone);
+			statement.setString(9, postalCode);
+			statement.setString(10, city);
+			statement.setString(11, street);
+			statement.setInt(12, houseNumber);
+			statement.setInt(13, flatNumber);
+			statement.setString(14, parentPhone);
+			statement.setString(15, classID);
+			
+			resultSet = statement.executeQuery();
+			if(resultSet.next()) {
+				return resultSet.getString(1);
+			} else {
+				return "Invalid data";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "Adding user failed";
+		}
+
+	}
 	
 	
-	public String login(String login, String password) {
-		String call = "{call Login(?, ?)}";
+	
+	public ResultSet login(String login, String password) {
+		String call = "{call login(?, ?)}";
 		ResultSet resultSet = null;
 		
 		try {
@@ -131,16 +167,11 @@ public class DatabaseConnector {
 			statement.setString(2, password);
 			resultSet = statement.executeQuery();
 			
-			if(resultSet.next()) {
-				return resultSet.getString(1);
-			} else {
-				return "Invalid login or password";
-			}
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return "Exception";
 		}
+		return resultSet;
 	}
 
 }

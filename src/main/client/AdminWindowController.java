@@ -53,7 +53,20 @@ public class AdminWindowController {
 	
 	@FXML
 	private void handleAddStudent(ActionEvent event) {
+		Stage stage = (Stage)addStudent.getScene().getWindow();
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("AddStudent.FXML"));
 		
+		Scene scene = null;
+		try {
+			scene = new Scene((Pane)loader.load());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		stage.setScene(scene);
+		AddStudentController controller = loader.<AddStudentController>getController();
+		controller.setData("A", connector);
+		stage.show();
 	}
 	
 	@FXML

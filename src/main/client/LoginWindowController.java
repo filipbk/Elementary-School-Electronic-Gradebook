@@ -58,7 +58,7 @@ public class LoginWindowController {
 			}
 		} catch (Exception e) {
 			message.setText("Unable to log in");
-			e.printStackTrace();
+			//e.printStackTrace();
 			return;
 		}
 		
@@ -68,7 +68,7 @@ public class LoginWindowController {
 		if(permission.equals("ADMIN")) {
 			loader = new FXMLLoader(getClass().getResource("AdminWindow.FXML"));
 		} else if(permission.equals("TEACHER")) {
-
+			loader = new FXMLLoader(getClass().getResource("TeacherWindow.FXML"));
 		} else if(permission.equals("STUDENT")) {
 
 		}
@@ -85,7 +85,8 @@ public class LoginWindowController {
 			AdminWindowController controller = loader.<AdminWindowController>getController();
 			controller.setData(userID, connector);
 		} else if(permission.equals("TEACHER")) {
-
+			TeacherWindowController controller = loader.<TeacherWindowController>getController();
+			controller.setData(userID, connector);
 		} else if(permission.equals("STUDENT")) {
 
 		}

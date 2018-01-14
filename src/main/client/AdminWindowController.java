@@ -1,6 +1,7 @@
 package client;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import database.DatabaseConnector;
 import javafx.event.ActionEvent;
@@ -20,7 +21,7 @@ public class AdminWindowController {
 	private Button addAdmin;
 	
 	@FXML
-	private Button addTeacher;
+	private Button backup;
 
 	@FXML
 	private Button addStudent;
@@ -42,13 +43,41 @@ public class AdminWindowController {
 		}
 		stage.setScene(scene);
 		AddAdminController controller = loader.<AddAdminController>getController();
-		controller.setData("A", connector);
+		controller.setData(userID, connector);
 		stage.show();
 	}
 	
 	@FXML
-	private void handleAddTeacher(ActionEvent event) {
+	private void handleBaackup(ActionEvent event) {
+		Process exec = null;
+		try {
+			exec = Runtime.getRuntime().exec(new String[]{"cmd.exe","/c","E:\\Pobrane\\mariadb-10.2.10-winx64\\mariadb-10.2.10-winx64\\bin\\mysqldump -u root electronic_gradebook > E:\\backup.sql"});
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
+		try {
+			if(exec.waitFor()==0)
+			{
+			    InputStream inputStream = exec.getInputStream();
+			    byte[] buffer = new byte[inputStream.available()];
+			    inputStream.read(buffer);
+
+			    String str = new String(buffer);
+			    System.out.println(str);
+			}
+			else
+			{
+			    InputStream errorStream = exec.getErrorStream();
+			    byte[] buffer = new byte[errorStream.available()];
+			    errorStream.read(buffer);
+
+			    String str = new String(buffer);
+			    System.out.println(str);
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 	}
 	
 	@FXML
@@ -65,7 +94,7 @@ public class AdminWindowController {
 		}
 		stage.setScene(scene);
 		AddStudentController controller = loader.<AddStudentController>getController();
-		controller.setData("A", connector);
+		controller.setData(userID, connector);
 		stage.show();
 	}
 	
@@ -83,7 +112,7 @@ public class AdminWindowController {
 		}
 		stage.setScene(scene);
 		ClassesManagementController controller = loader.<ClassesManagementController>getController();
-		controller.setData("A", connector);
+		controller.setData(userID, connector);
 		stage.show();
 	}
 	

@@ -58,17 +58,49 @@ public class ClassesManagementController {
 	
 	@FXML
 	private void handleAddSubject(ActionEvent event) {
-		
+		String name = subjectName.getText();
+		int year = 0;
+		try {
+			year = Integer.parseInt(subjectYear.getText());
+		} catch (NumberFormatException e) {
+			// TODO: handle exception
+			message.setText("Invalid subject year");
+			return;
+		}
+		String msg = connector.addSubject(name, year);
+		message.setText(msg);
 	}
 
 	@FXML
 	private void handleAddClass(ActionEvent event) {
-		
+		String id = classID.getText();
+		String tutor = classTeacher.getText();
+		int year = 0;
+		try {
+			year = Integer.parseInt(classYear.getText());
+		} catch (NumberFormatException e) {
+			// TODO: handle exception
+			message.setText("Invalid class year");
+			return;
+		}
+		String msg = connector.addClass(id, tutor, year);
+		message.setText(msg);
 	}
 
 	@FXML
 	private void handleAddLesson(ActionEvent event) {
-		
+		String teacher = lessonTeacher.getText();
+		String classID = lessonClass.getText();
+		int subjectID = 0;
+		try {
+			subjectID = Integer.parseInt(lessonSubject.getText());
+		} catch (NumberFormatException e) {
+			// TODO: handle exception
+			message.setText("Invalid subject ID");
+			return;
+		}
+		String msg = connector.addLessonSet(subjectID, teacher, classID);
+		message.setText(msg);
 	}
 	
 	@FXML
@@ -85,7 +117,7 @@ public class ClassesManagementController {
 		}
 		stage.setScene(scene);
 		AdminWindowController controller = loader.<AdminWindowController>getController();
-		controller.setData("A", connector);
+		controller.setData(userID, connector);
 		stage.show();
 	}
 	

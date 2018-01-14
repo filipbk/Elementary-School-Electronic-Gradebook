@@ -122,7 +122,7 @@ public class AddStudentController {
 		}
 		stage.setScene(scene);
 		AdminWindowController controller = loader.<AdminWindowController>getController();
-		controller.setData("A", connector);
+		controller.setData(userID, connector);
 		stage.show();
 	}
 	

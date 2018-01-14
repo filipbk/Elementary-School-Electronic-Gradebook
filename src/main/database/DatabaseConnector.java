@@ -155,8 +155,6 @@ public class DatabaseConnector {
 
 	}
 	
-	
-	
 	public ResultSet login(String login, String password) {
 		String call = "{call login(?, ?)}";
 		ResultSet resultSet = null;
@@ -165,9 +163,96 @@ public class DatabaseConnector {
 			PreparedStatement statement = connection.prepareCall(call);
 			statement.setString(1,login);
 			statement.setString(2, password);
+			resultSet = statement.executeQuery();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultSet;
+	}
+	
+	public String addClass(String id, String tutor, int year) {
+		String call = "{call addClass(?, ?, ?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, id);
+			statement.setString(2, tutor);
+			statement.setInt(3, year);
 			resultSet = statement.executeQuery();
-			
-			
+			if(resultSet.next()) {
+				return resultSet.getString(1);
+			} else {
+				return "Invalid data";
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Adding class failed";
+		}
+	}
+	
+	public String addSubject(String name, int classYear) {
+		String call = "{call addSubject(?, ?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, name);
+			statement.setInt(2, classYear);
+			resultSet = statement.executeQuery();
+			if(resultSet.next()) {
+				return resultSet.getString(1);
+			} else {
+				return "Invalid data";
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Adding subject failed";
+		}
+	}
+	
+	public String addLessonSet(int subjectID, String teacherID, String classID) {
+		String call = "{call addLessonSet(?, ?, ?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setInt(1, subjectID);
+			statement.setString(2, teacherID);
+			statement.setString(3, classID);
+			resultSet = statement.executeQuery();
+			if(resultSet.next()) {
+				return resultSet.getString(1);
+			} else {
+				return "Invalid data";
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Adding subject failed";
+		}
+	}
+	
+	public ResultSet listAllClasses() {
+		String call = "{call listAllClasses()}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			resultSet = statement.executeQuery();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultSet;
+	}
+	
+	public ResultSet listAllSubjectsForClass(String classID) {
+		String call = "{call listAllSubjectsForClass(?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, classID);
+			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

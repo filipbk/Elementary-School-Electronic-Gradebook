@@ -255,8 +255,20 @@ $$
 
 CREATE OR REPLACE PROCEDURE listStudentsGradesForSubject(IN student_id CHAR(11), subject_id INT)
 	BEGIN
-		SELECT g.assessment_date,g.grade_value,g.final_grade,u.surname,g.note FROM grades g INNER JOIN users u ON g.teacher_id LIKE u.ID WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
+		SELECT g.ID,g.assessment_date,g.grade_value,g.final_grade,u.surname,g.note FROM grades g INNER JOIN users u ON g.teacher_id LIKE u.ID WHERE g.student_id LIKE student_id AND g.subject_id = subject_id;
 	END;
+$$
+
+CREATE OR REPLACE PROCEDURE deleteGrade(IN grade_id INT)
+	BEGIN
+		DELETE FROM grades WHERE ID = grade_id;
+	END;
+$$
+
+-- CREATE OR REPLACE FUNCTION studentCanPass(student_id CHAR(11)) RETURNS BOOL
+--	BEGIN
+--		
+--	END;
 $$
 
 DELIMITER ;

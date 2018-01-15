@@ -122,7 +122,6 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			return "Adding user failed";
 		}
 	
@@ -158,7 +157,6 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 			return "Adding user failed";
 		}
 
@@ -174,7 +172,6 @@ public class DatabaseConnector {
 			statement.setString(2, password);
 			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		return resultSet;
 	}
@@ -195,7 +192,6 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return "Adding class failed";
 		}
 	}
@@ -215,7 +211,6 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return "Adding subject failed";
 		}
 	}
@@ -236,7 +231,6 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return "Adding subject failed";
 		}
 	}
@@ -249,7 +243,6 @@ public class DatabaseConnector {
 			PreparedStatement statement = connection.prepareCall(call);
 			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		return resultSet;
 	}
@@ -261,6 +254,20 @@ public class DatabaseConnector {
 		try {
 			PreparedStatement statement = connection.prepareCall(call);
 			statement.setString(1, classID);
+			resultSet = statement.executeQuery();	
+		} catch (SQLException e) {
+			
+		}
+		return resultSet;
+	}
+	
+	public ResultSet listStudentsSubjects(String userID) {
+		String call = "{call listStudentsSubjects(?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, userID);
 			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -277,7 +284,6 @@ public class DatabaseConnector {
 			statement.setString(1, classID);
 			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		return resultSet;
 	}
@@ -292,10 +298,11 @@ public class DatabaseConnector {
 			statement.setInt(2, subjectID);
 			resultSet = statement.executeQuery();	
 		} catch (SQLException e) {
-			e.printStackTrace();
 		}
 		return resultSet;
 	}
+	
+	
 	
 	public String addGrade(int gradeValue, String studentID, String teacherID, int subjectID, int finalGrade, String note) {
 		String call = "{call addGrade(?, ?, ?, ?, ?, ?)}";
@@ -316,8 +323,20 @@ public class DatabaseConnector {
 				return "Invalid data";
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
 			return "Adding grade failed";
+		}
+	}
+	
+	public void deleteGrade(int gradeID) {
+		String call = "{call deleteGrade(?)}";
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setInt(1, gradeID);
+			statement.executeQuery();
+			
+		} catch (SQLException e) {
+			
 		}
 	}
 	

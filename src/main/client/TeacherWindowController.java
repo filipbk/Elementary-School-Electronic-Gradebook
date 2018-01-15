@@ -83,6 +83,7 @@ public class TeacherWindowController {
 					subject = -1;
 					student = null;
 					className = rowData.getID();
+					grade = -1;
 					setUpSubjects(className);
 					setUpStudents(className);
 				}
@@ -133,17 +134,17 @@ public class TeacherWindowController {
 			return row;
 		});
 		
-		gradeID = new TableColumn<>("Student ID");
+		gradeID = new TableColumn<>("Grade ID");
 		gradeID.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
-		gradeDate = new TableColumn<>("Name");
+		gradeDate = new TableColumn<>("Date");
 		gradeDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
-		gradeVal = new TableColumn<>("Surname");
+		gradeVal = new TableColumn<>("Grade");
 		gradeVal.setCellValueFactory(cellData -> cellData.getValue().gradeProperty().asObject());
-		gradeFinal = new TableColumn<>("Email");
+		gradeFinal = new TableColumn<>("Is final");
 		gradeFinal.setCellValueFactory(cellData -> cellData.getValue().finalProperty());
-		gradeSurname = new TableColumn<>("Contact phone");
+		gradeSurname = new TableColumn<>("Surname");
 		gradeSurname.setCellValueFactory(cellData -> cellData.getValue().surnameProperty());
-		gradeInfo = new TableColumn<>("Parent phone");
+		gradeInfo = new TableColumn<>("Note");
 		gradeInfo.setCellValueFactory(cellData -> cellData.getValue().noteProperty());
 		grades.getColumns().addAll(gradeID, gradeDate, gradeVal, gradeFinal, gradeSurname, gradeInfo);
 		grades.setRowFactory(tv -> {
@@ -177,6 +178,15 @@ public class TeacherWindowController {
 		message.setText(msg);
 	}
 	
+	@FXML
+	private void deleteGrade(ActionEvent event) {
+		if (grade == -1) {
+			message.setText("Choose a grade");
+			return;
+		}
+		connector.deleteGrade(grade);
+	}
+	
 	private void setUpClasses() {
 		ResultSet resultSet = connector.listAllClasses();
 		if(resultSet == null) {
@@ -188,7 +198,6 @@ public class TeacherWindowController {
 				classes.getItems().add(dbClass);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -205,7 +214,6 @@ public class TeacherWindowController {
 				subjects.getItems().add(dbSubject);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -222,7 +230,6 @@ public class TeacherWindowController {
 				students.getItems().add(dbStudent);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -230,7 +237,6 @@ public class TeacherWindowController {
 		if (student != null && subject != -1) {
 			
 		}
-		System.out.println("tr");
 		ResultSet resultSet = connector.listStudentsGradesForSubject(student, subject);
 		grades.getItems().removeAll(grades.getItems());
 		if(resultSet == null) {
@@ -242,7 +248,6 @@ public class TeacherWindowController {
 				grades.getItems().add(dbGrade);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 	

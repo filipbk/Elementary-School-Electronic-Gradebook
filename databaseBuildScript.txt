@@ -169,7 +169,7 @@ $$
 
 CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), teacher_id CHAR(11), subject_id INT, final_grade BOOL, note VARCHAR(100))
 	BEGIN
-		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
+		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND g.final_grade = TRUE AND final_grade = TRUE) THEN
 			INSERT INTO grades(grade_value,student_id,teacher_id,subject_id,final_grade,note) VALUES(grade_value,student_id,teacher_id,subject_id,final_grade,note);
 			SELECT grade_value;
 		END IF;
@@ -184,7 +184,7 @@ CREATE OR REPLACE PROCEDURE addGrade (IN grade_value INT, student_id CHAR(11), t
 		ELSEIF(final_grade = 0) THEN
 			SET final_grade_bool = FALSE;
 		END IF;
-		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND final_grade = TRUE) THEN
+		IF NOT EXISTS(SELECT * FROM grades g WHERE g.student_id LIKE student_id AND g.subject_id LIKE subject_id AND g.final_grade = TRUE AND final_grade = TRUE) THEN
 			INSERT INTO grades(grade_value,student_id,teacher_id,subject_id,final_grade,note) VALUES(grade_value,student_id,teacher_id,subject_id,final_grade_bool,note);
 			SELECT grade_value;
 		END IF;
@@ -260,7 +260,7 @@ $$
 CREATE OR REPLACE PROCEDURE listStudentsSubjects(IN student_id CHAR(11))
 	BEGIN
 		DECLARE class_id CHAR(2);
-		SELECT s.class_id INTO class_id FROM students WHERE s.ID LIKE student_id;
+		SELECT s.class_id INTO class_id FROM students s WHERE s.ID LIKE student_id;
 		CALL listAllSubjectsForClass(class_id);
 	END;
 $$
@@ -274,6 +274,12 @@ $$
 CREATE OR REPLACE PROCEDURE deleteGrade(IN grade_id INT)
 	BEGIN
 		DELETE FROM grades WHERE ID = grade_id;
+	END;
+$$
+
+CREATE OR REPLACE FUNCTION getUserIdFromPesel(PESEL CHAR(11)) RETURNS CHAR(11)
+	BEGIN
+		RETURN (SELECT u.ID FROM users u WHERE u.PESEL LIKE PESEL);
 	END;
 $$
 
@@ -305,3 +311,7 @@ CALL addLessonSet(1,'22222222222','1a');
 CALL addLessonSet(1,'22222222222','1b');
 CALL addLessonSet(2,'33333333333','1a');
 CALL addLessonSet(2,'33333333333','1b');
+CALL addGrade(5,getUserIdFromPesel('44444444444'),getUserIdFromPesel('22222222222'),1,FALSE,'Dziady kartkówka');
+CALL addGrade(5,getUserIdFromPesel('55555555555'),getUserIdFromPesel('22222222222'),1,FALSE,'Ludzie Bezdomni kartkówka');
+CALL addGrade(4,getUserIdFromPesel('44444444444'),getUserIdFromPesel('33333333333'),2,FALSE,'Dodawanie i mno¿enie kartkówka');
+CALL addGrade(3,getUserIdFromPesel('55555555555'),getUserIdFromPesel('33333333333'),2,FALSE,'Dodawanie i mno¿enie kartkówka');

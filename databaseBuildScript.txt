@@ -202,14 +202,26 @@ $$
 
 CREATE OR REPLACE PROCEDURE addClass (IN class_id CHAR(2), tutor CHAR(11), class_year INT)
 	BEGIN
-		INSERT INTO classes(ID,tutor,class_year) VALUES(class_id,tutor,class_year);
+		DECLARE tutor_id CHAR(11);
+		IF(tutor REGEXP '[0-9]{11}') THEN
+			SELECT u.ID INTO tutor_id FROM users u WHERE u.PESEL LIKE tutor;
+		ELSE
+			SET tutor_id = tutor;
+		END IF;
+		INSERT INTO classes(ID,tutor,class_year) VALUES(class_id,tutor_id,class_year);
 		SELECT class_id;
 	END
 $$
 
 CREATE OR REPLACE PROCEDURE addLessonSet (IN subject_id INT,teacher_id CHAR(11),class_id CHAR(2))
 	BEGIN
-		INSERT INTO lesson_sets(subject_id,teacher_id,class_id) VALUES(subject_id,teacher_id,class_id);
+		DECLARE teacher_user_id CHAR(11);
+		IF(teacher_id REGEXP '[0-9]{11}') THEN
+			SELECT u.ID INTO teacher_user_id FROM users u WHERE u.PESEL LIKE teacher_id;
+		ELSE
+			SET teacher_user_id = teacher_id;
+		END IF;
+		INSERT INTO lesson_sets(subject_id,teacher_id,class_id) VALUES(subject_id,teacher_user_id,class_id);
 		SELECT l.ID FROM lesson_sets l WHERE l.subject_id = subject_id AND l.teacher_id LIKE teacher_id AND l.class_id LIKE class_id;
 	END;
 $$
@@ -248,7 +260,7 @@ $$
 CREATE OR REPLACE PROCEDURE listStudentsSubjects(IN student_id CHAR(11))
 	BEGIN
 		DECLARE class_id CHAR(2);
-		SELECT u.class_id INTO class_id FROM users u WHERE u.ID LIKE student_id;
+		SELECT s.class_id INTO class_id FROM students WHERE s.ID LIKE student_id;
 		CALL listAllSubjectsForClass(class_id);
 	END;
 $$
@@ -266,10 +278,12 @@ CREATE OR REPLACE PROCEDURE deleteGrade(IN grade_id INT)
 $$
 
 -- CREATE OR REPLACE FUNCTION studentCanPass(student_id CHAR(11)) RETURNS BOOL
---	BEGIN
---		
---	END;
-$$
+-- 	BEGIN
+-- 		DECLARE expected INT;
+-- 		DECLARE actual INT;
+-- 		SELECT COUNT(*) INTO expected FROM 
+-- 	END;
+-- $$
 
 DELIMITER ;
 
@@ -279,3 +293,15 @@ DELIMITER ;
 -- transakcje? triggery?
 
 CALL addAdmin('11111111111','admin','Admin','Admin','Admin','1111-11-11','admin@admin.com','+11111111111','11-111','Admin','Admin',1,1);
+CALL addStaff('22222222222','teacher','TeacherA','TeacherA','TeacherA','1111-11-11','teacherA@teacher.com','+22222222222','22-222','Teacher','Teacher',2,2);
+CALL addStaff('33333333333','teacher','TeacherB','TeacherB','TeacherB','1111-11-11','teacherB@teacher.com','+33333333333','22-222','Teacher','Teacher',2,2);
+CALL addClass('1a','22222222222',1);
+CALL addClass('1b','33333333333',1);
+CALL addSubject('Jêzyk polski',1);
+CALL addSubject('Matematyka',1);
+CALL addStudent('44444444444','student','StudentA','StudentA','StudentA','1999-01-01','studentA@student.com','+44444444444','44-444','Student','Student',4,5,'+44444444445','1a');
+CALL addStudent('55555555555','student','StudentB','StudentB','StudentB','1999-02-02','studentB@student.com','+55555555555','55-555','Student','Student',4,6,'+55555555556','1b');
+CALL addLessonSet(1,'22222222222','1a');
+CALL addLessonSet(1,'22222222222','1b');
+CALL addLessonSet(2,'33333333333','1a');
+CALL addLessonSet(2,'33333333333','1b');

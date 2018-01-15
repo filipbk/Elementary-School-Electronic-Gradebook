@@ -282,6 +282,46 @@ public class DatabaseConnector {
 		return resultSet;
 	}
 	
+	public ResultSet listStudentsGradesForSubject(String studentID, int subjectID) {
+		String call = "{call listStudentsGradesForSubject(?, ?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setString(1, studentID);
+			statement.setInt(2, subjectID);
+			resultSet = statement.executeQuery();	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return resultSet;
+	}
+	
+	public String addGrade(int gradeValue, String studentID, String teacherID, int subjectID, int finalGrade, String note) {
+		String call = "{call addGrade(?, ?, ?, ?, ?, ?)}";
+		ResultSet resultSet = null;
+		
+		try {
+			PreparedStatement statement = connection.prepareCall(call);
+			statement.setInt(1, gradeValue);
+			statement.setString(2, studentID);
+			statement.setString(3, teacherID);
+			statement.setInt(4, subjectID);
+			statement.setInt(5, finalGrade);
+			statement.setString(6, note);
+			resultSet = statement.executeQuery();
+			if(resultSet.next()) {
+				return resultSet.getString(1);
+			} else {
+				return "Invalid data";
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return "Adding grade failed";
+		}
+	}
+	
+	
 	/**
 	 * A method that receives text from databaseBuildScript.txt located in project directory,
 	 * formats it into a series of SQL statements, and then executes them one by one.

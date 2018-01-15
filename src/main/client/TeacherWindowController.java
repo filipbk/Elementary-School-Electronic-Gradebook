@@ -1,14 +1,20 @@
 package client;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 
 import database.DBClass;
+import database.DBGrade;
 import database.DBSubject;
 import database.DBStudent;
 import database.DatabaseConnector;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableRow;
 
@@ -25,10 +31,19 @@ public class TeacherWindowController {
 	private TableColumn<DBStudent, String> studentEmail;
 	private TableColumn<DBStudent, String> studentContact;
 	private TableColumn<DBStudent, String> studentParent;
+	private TableColumn<DBGrade, Integer> gradeID;
+	private TableColumn<DBGrade, Date> gradeDate;
+	private TableColumn<DBGrade, Integer> gradeVal;
+	private TableColumn<DBGrade, String> gradeFinal;
+	private TableColumn<DBGrade, String> gradeSurname;
+	private TableColumn<DBGrade, String> gradeInfo;
 	private String userID;
 	private DatabaseConnector connector;
 	private int subject;
 	private String student;
+	private String className;
+	private int grade;
+	private String note;
 	
 	@FXML
 	private TableView<DBClass> classes;
@@ -36,9 +51,24 @@ public class TeacherWindowController {
 	private TableView<DBSubject> subjects;
 	@FXML
 	private TableView<DBStudent> students;
+	@FXML
+	private TableView<DBGrade> grades;
+	@FXML
+	private TextField message;
+	@FXML
+	private TextField gradeValue;
+	@FXML
+	private TextField gradeNote;
+	@FXML
+	private Button addGrade;
+	@FXML
+	private Button deleteGrade;
 	
 	@FXML
 	private void initialize() {
+		className = null;
+		subject = -1;
+		student = null;
 		classID = new TableColumn<DBClass, String>("Class ID");
 		classID.setCellValueFactory(cellData -> cellData.getValue().idProperty());
 		classYear = new TableColumn<>("Class year");
@@ -50,9 +80,11 @@ public class TeacherWindowController {
 			row.setOnMouseClicked(event -> {
 				DBClass rowData = row.getItem();
 				if(rowData != null) {
-					System.out.println("click on: " + rowData.getID());
-					setUpSubjects(rowData.getID());
-					setUpStudents(rowData.getID());
+					subject = -1;
+					student = null;
+					className = rowData.getID();
+					setUpSubjects(className);
+					setUpStudents(className);
 				}
 			});
 			return row;
@@ -95,10 +127,54 @@ public class TeacherWindowController {
 				DBStudent rowData = row.getItem();
 				if(rowData != null) {
 					student = rowData.getID();
+					setUpGrades(student, subject);
 				}
 			});
 			return row;
 		});
+		
+		gradeID = new TableColumn<>("Student ID");
+		gradeID.setCellValueFactory(cellData -> cellData.getValue().idProperty().asObject());
+		gradeDate = new TableColumn<>("Name");
+		gradeDate.setCellValueFactory(cellData -> cellData.getValue().dateProperty());
+		gradeVal = new TableColumn<>("Surname");
+		gradeVal.setCellValueFactory(cellData -> cellData.getValue().gradeProperty().asObject());
+		gradeFinal = new TableColumn<>("Email");
+		gradeFinal.setCellValueFactory(cellData -> cellData.getValue().finalProperty());
+		gradeSurname = new TableColumn<>("Contact phone");
+		gradeSurname.setCellValueFactory(cellData -> cellData.getValue().surnameProperty());
+		gradeInfo = new TableColumn<>("Parent phone");
+		gradeInfo.setCellValueFactory(cellData -> cellData.getValue().noteProperty());
+		grades.getColumns().addAll(gradeID, gradeDate, gradeVal, gradeFinal, gradeSurname, gradeInfo);
+		grades.setRowFactory(tv -> {
+			TableRow<DBGrade> row = new TableRow<>();
+			row.setOnMouseClicked(event -> {
+				DBGrade rowData = row.getItem();
+				if(rowData != null) {
+					grade = rowData.getID();
+				}
+			});
+			return row;
+		});
+	}
+	
+	@FXML
+	private void handleAddGrade(ActionEvent event) {
+		if(className == null || subject == -1 || student == null) {
+			message.setText("Choose class, subject and student");
+			return;
+		}
+		int grade = 0;
+		
+		try {
+			grade = Integer.parseInt(gradeValue.getText());
+		} catch (Exception e) {
+			message.setText("Invalid grade format");
+			return;
+		}
+		
+		String msg = connector.addGrade(grade, student, userID, subject, 0, gradeNote.getText());
+		message.setText(msg);
 	}
 	
 	private void setUpClasses() {
@@ -117,6 +193,7 @@ public class TeacherWindowController {
 	}
 	
 	private void setUpSubjects(String classID) {
+		
 		ResultSet resultSet = connector.listAllSubjectsForClass(classID);
 		subjects.getItems().removeAll(subjects.getItems());
 		if(resultSet == null) {
@@ -133,6 +210,7 @@ public class TeacherWindowController {
 	}
 	
 	private void setUpStudents(String classID) {
+		
 		ResultSet resultSet = connector.listAllStudentsForClass(classID);
 		students.getItems().removeAll(students.getItems());
 		if(resultSet == null) {
@@ -142,6 +220,26 @@ public class TeacherWindowController {
 			while(resultSet.next()) {
 				DBStudent dbStudent = new DBStudent(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6));
 				students.getItems().add(dbStudent);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void setUpGrades(String student, int subject) {
+		if (student != null && subject != -1) {
+			
+		}
+		System.out.println("tr");
+		ResultSet resultSet = connector.listStudentsGradesForSubject(student, subject);
+		grades.getItems().removeAll(grades.getItems());
+		if(resultSet == null) {
+			return;
+		}
+		try {
+			while(resultSet.next()) {
+				DBGrade dbGrade = new DBGrade(resultSet.getInt(1), resultSet.getDate(2), resultSet.getInt(3), resultSet.getString(4), resultSet.getString(5), resultSet.getString(6));
+				grades.getItems().add(dbGrade);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -70,7 +70,7 @@ public class LoginWindowController {
 		} else if(permission.equals("TEACHER")) {
 			loader = new FXMLLoader(getClass().getResource("TeacherWindow.FXML"));
 		} else if(permission.equals("STUDENT")) {
-
+			loader = new FXMLLoader(getClass().getResource("StudentWindow.FXML"));
 		}
 		
 		Scene scene = null;
@@ -88,7 +88,8 @@ public class LoginWindowController {
 			TeacherWindowController controller = loader.<TeacherWindowController>getController();
 			controller.setData(userID, connector);
 		} else if(permission.equals("STUDENT")) {
-
+			StudentWindowController controller = loader.<StudentWindowController>getController();
+			controller.setData(userID, connector);
 		}
 		stage.show();
 		

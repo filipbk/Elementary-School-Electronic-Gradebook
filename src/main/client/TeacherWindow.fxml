@@ -39,7 +39,7 @@
             <Font size="14.0" />
          </font>
       </Button>
-      <Button fx:id="deleteGrade" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" text="Delete grade" GridPane.columnIndex="4" GridPane.rowIndex="3">
+      <Button fx:id="deleteGrade" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#deleteGrade" text="Delete grade" GridPane.columnIndex="4" GridPane.rowIndex="3">
          <font>
             <Font size="14.0" />
          </font>
